@@ -102,7 +102,7 @@ const GovernmentDashboardPage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
-  const [selectedTransfer, setSelectedTransfer] = null>(null);
+  const [selectedTransfer, setSelectedTransfer] = useState<TransferApproval | null>(null);
   const [commentDialog, setCommentDialog] = useState(false);
   const [comment, setComment] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');

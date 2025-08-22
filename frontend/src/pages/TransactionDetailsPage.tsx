@@ -189,7 +189,7 @@ const TransactionDetailsPage: React.FC = () => {
       fromAddress: '0x0000000000000000000000000000000000000000',
       toAddress: '0x1234567890abcdef1234567890abcdef12345678',
       fromName: 'Land Registry Authority',
-      toName: 'John Doe',
+              toName: 'Sample Owner',
       
       propertyId: 'PROP-001-2024',
       surveyNumber: 'SUR-001-2024',
@@ -234,21 +234,21 @@ const TransactionDetailsPage: React.FC = () => {
           amount: 50000,
           currency: 'INR',
           description: 'Registration Fee',
-          paidBy: 'John Doe'
+          paidBy: 'Sample Owner'
         },
         {
           type: 'stamp_duty',
           amount: 312000,
           currency: 'INR',
           description: 'Stamp Duty (6%)',
-          paidBy: 'John Doe'
+          paidBy: 'Sample Owner'
         },
         {
           type: 'processing',
           amount: 5000,
           currency: 'INR',
           description: 'Processing Fee',
-          paidBy: 'John Doe'
+          paidBy: 'Sample Owner'
         },
         {
           type: 'gas',
@@ -267,7 +267,7 @@ const TransactionDetailsPage: React.FC = () => {
           description: 'Land registration request submitted by applicant',
           timestamp: '2024-08-20T10:15:00Z',
           actor: '0x1234567890abcdef1234567890abcdef12345678',
-          actorName: 'John Doe'
+          actorName: 'Sample Owner'
         },
         {
           id: 'EVT-002',
@@ -276,7 +276,7 @@ const TransactionDetailsPage: React.FC = () => {
           description: 'All required documents uploaded and verified',
           timestamp: '2024-08-20T11:30:00Z',
           actor: '0x1234567890abcdef1234567890abcdef12345678',
-          actorName: 'John Doe'
+          actorName: 'Sample Owner'
         },
         {
           id: 'EVT-003',

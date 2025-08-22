@@ -20,6 +20,25 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper function to get permissions for a role
+const getPermissionsForRole = (role: UserRole): string[] => {
+  switch (role) {
+    case UserRole.ADMIN:
+      return ['all'];
+    case UserRole.REGISTRAR:
+      return ['register_land', 'verify_land', 'approve_transfer', 'view_all_records'];
+    case UserRole.GOVERNMENT_OFFICIAL:
+      return ['verify_land', 'approve_transfer', 'view_department_stats'];
+    case UserRole.DEPARTMENT_HEAD:
+      return ['verify_land', 'approve_transfer', 'view_department_stats', 'manage_department'];
+    case UserRole.FINANCIAL_INSTITUTION:
+      return ['view_land_records', 'verify_ownership'];
+    case UserRole.CITIZEN:
+    default:
+      return ['register_land', 'view_own_records', 'request_transfer'];
+  }
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -59,17 +78,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const validateToken = async (token: string): Promise<boolean> => {
     try {
-      // Simulate API call to validate token
-      // Replace with actual backend validation
-      const response = await fetch('/api/auth/validate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      return response.ok;
+      // Mock token validation for demo purposes
+      // In production, this would call the actual backend
+      if (token.startsWith('mock_token_')) {
+        // Check if token is not too old (24 hours)
+        const tokenTimestamp = parseInt(token.split('_')[2]);
+        const currentTime = Date.now();
+        const tokenAge = currentTime - tokenTimestamp;
+        const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+        
+        return tokenAge < maxAge;
+      }
+      return false;
     } catch (error) {
       console.error('Token validation error:', error);
       return false;
@@ -80,32 +100,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Simulate API call - replace with actual backend login
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      if (response.ok) {
-        const authData: AuthResponse = await response.json();
-        
-        // Store authentication data
-        localStorage.setItem('authToken', authData.token);
-        localStorage.setItem('userData', JSON.stringify(authData.user));
-        if (authData.refreshToken) {
-          localStorage.setItem('refreshToken', authData.refreshToken);
-        }
-        
-        setUser(authData.user);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
+      // Mock authentication for demo purposes
+      // In production, this would call the actual backend
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      
+      // Mock user data based on credentials
+      const mockUser: User = {
+        id: '1',
+        name: credentials.email.split('@')[0], // Use email prefix as name
+        email: credentials.email,
+        role: credentials.userType,
+        permissions: getPermissionsForRole(credentials.userType),
+        isActive: true,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Generate mock token
+      const mockToken = `mock_token_${Date.now()}`;
+      
+      // Store authentication data
+      localStorage.setItem('authToken', mockToken);
+      localStorage.setItem('userData', JSON.stringify(mockUser));
+      
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -118,32 +137,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Simulate API call - replace with actual backend registration
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
-        const authData: AuthResponse = await response.json();
-        
-        // Store authentication data
-        localStorage.setItem('authToken', authData.token);
-        localStorage.setItem('userData', JSON.stringify(authData.user));
-        if (authData.refreshToken) {
-          localStorage.setItem('refreshToken', authData.token);
-        }
-        
-        setUser(authData.user);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
-      }
+      // Mock registration for demo purposes
+      // In production, this would call the actual backend
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      
+      // Mock user data based on registration
+      const mockUser: User = {
+        id: `user_${Date.now()}`,
+        name: userData.name || userData.email?.split('@')[0] || 'User',
+        email: userData.email || '',
+        role: userData.role || UserRole.CITIZEN,
+        permissions: getPermissionsForRole(userData.role || UserRole.CITIZEN),
+        isActive: true,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Generate mock token
+      const mockToken = `mock_token_${Date.now()}`;
+      
+      // Store authentication data
+      localStorage.setItem('authToken', mockToken);
+      localStorage.setItem('userData', JSON.stringify(mockUser));
+      
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      return true;
     } catch (error) {
       console.error('Registration error:', error);
       return false;

@@ -133,17 +133,13 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       await connectWallet();
-      if (isConnected) {
-        localStorage.setItem('walletConnected', 'true');
-        localStorage.setItem('userType', 'citizen');
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/dashboard');
-      }
+      // Don't redirect automatically - just connect the wallet
+      // User can then login normally or use wallet-based authentication
+      setWalletConnectDialog(false);
     } catch (e) {
       setError(walletError || 'Failed to connect wallet. Please try again.');
     } finally {
       setLoading(false);
-      setWalletConnectDialog(false);
     }
   };
 
@@ -300,8 +296,30 @@ const LoginPage: React.FC = () => {
           <Grid item xs={12} sm={6}>
             <Button
               fullWidth
-              variant={officialLogin.userType === 'registrar' ? 'contained' : 'outlined'}
-              onClick={() => setOfficialLogin(prev => ({ ...prev, userType: 'registrar' }))}
+              variant={officialLogin.userType === UserRole.GOVERNMENT_OFFICIAL ? 'contained' : 'outlined'}
+              onClick={() => setOfficialLogin(prev => ({ ...prev, userType: UserRole.GOVERNMENT_OFFICIAL }))}
+              startIcon={<AccountBalance />}
+              size="small"
+            >
+              Government Official
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Button
+              fullWidth
+              variant={officialLogin.userType === UserRole.DEPARTMENT_HEAD ? 'contained' : 'outlined'}
+              onClick={() => setOfficialLogin(prev => ({ ...prev, userType: UserRole.DEPARTMENT_HEAD }))}
+              startIcon={<Business />}
+              size="small"
+            >
+              Department Head
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Button
+              fullWidth
+              variant={officialLogin.userType === UserRole.REGISTRAR ? 'contained' : 'outlined'}
+              onClick={() => setOfficialLogin(prev => ({ ...prev, userType: UserRole.REGISTRAR }))}
               startIcon={<AccountBalance />}
               size="small"
             >
@@ -311,12 +329,12 @@ const LoginPage: React.FC = () => {
           <Grid item xs={12} sm={6}>
             <Button
               fullWidth
-              variant={officialLogin.userType === 'institution' ? 'contained' : 'outlined'}
-              onClick={() => setOfficialLogin(prev => ({ ...prev, userType: 'institution' }))}
+              variant={officialLogin.userType === UserRole.FINANCIAL_INSTITUTION ? 'contained' : 'outlined'}
+              onClick={() => setOfficialLogin(prev => ({ ...prev, userType: UserRole.FINANCIAL_INSTITUTION }))}
               startIcon={<Business />}
               size="small"
             >
-              Institution
+              Financial Institution
             </Button>
           </Grid>
         </Grid>

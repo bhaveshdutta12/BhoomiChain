@@ -36,12 +36,9 @@ import {
   Business,
   Visibility,
   VisibilityOff,
-  PersonAdd,
   AccountBalance,
   VerifiedUser,
   Security,
-  Government,
-  School,
   AccountTree,
   CheckCircle,
   ArrowForward,
@@ -343,7 +340,7 @@ const UserRegistrationPage: React.FC = () => {
               </MenuItem>
               <MenuItem value={UserRole.GOVERNMENT_OFFICIAL}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Government />
+                  <AccountBalance />
                   Government Official
                 </Box>
               </MenuItem>
@@ -536,7 +533,7 @@ const UserRegistrationPage: React.FC = () => {
             iconPosition="start"
           />
           <Tab
-            icon={<Government />}
+            icon={<AccountBalance />}
             label="Government"
             iconPosition="start"
           />
@@ -561,7 +558,7 @@ const UserRegistrationPage: React.FC = () => {
 
         <TabPanel value={currentTab} index={1}>
           <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Government sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+            <AccountBalance sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography variant="h5" gutterBottom>
               Government Official Registration
             </Typography>

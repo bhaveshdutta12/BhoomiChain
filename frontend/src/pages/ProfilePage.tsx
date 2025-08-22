@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useWeb3 } from '../contexts/Web3Context';
 import {
   Container,
   Typography,
@@ -141,23 +144,34 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const ProfilePage: React.FC = () => {
+  const { user, isAuthenticated } = useAuth();
+  const { account, isConnected } = useWeb3();
+  const navigate = useNavigate();
+  
   const [currentTab, setCurrentTab] = useState(0);
   const [editMode, setEditMode] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [changePasswordDialog, setChangePasswordDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  // Mock user data
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Dynamic user profile based on authenticated user
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    id: 'user_001',
-    name: 'John Doe',
-    email: 'john.doe@email.com',
-    phone: '+91 98765 43210',
-    address: 'Sector 15, Noida, Uttar Pradesh, India',
-    walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    isVerified: true,
-    memberSince: '2022-03-15',
-    kycStatus: 'verified',
+    id: user?.id || 'user_001',
+    name: user?.name || 'User',
+    email: user?.email || '',
+    phone: '+91 98765 43210', // Default phone
+    address: 'Address not set', // Default address
+    walletAddress: account || 'Wallet not connected',
+    isVerified: user?.isActive || false,
+    memberSince: user?.createdAt || new Date().toISOString(),
+    kycStatus: user?.isActive ? 'verified' : 'pending',
     preferences: {
       notifications: true,
       darkMode: false,
@@ -166,11 +180,36 @@ const ProfilePage: React.FC = () => {
     }
   });
 
+  // Update profile when user data changes
+  useEffect(() => {
+    if (user) {
+      setUserProfile(prev => ({
+        ...prev,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isActive,
+        memberSince: user.createdAt,
+        kycStatus: user.isActive ? 'verified' : 'pending'
+      }));
+    }
+  }, [user]);
+
+  // Update wallet address when connected
+  useEffect(() => {
+    if (account) {
+      setUserProfile(prev => ({
+        ...prev,
+        walletAddress: account
+      }));
+    }
+  }, [account]);
+
   const mockOwnedLands: OwnedLand[] = [
     {
       id: 'LAND-001',
       surveyNumber: 'SUR-001-2024',
-      address: 'Sector 15, Noida, UP',
+      address: 'Sample Address 1',
       area: 2400,
       areaUnit: 'sqft',
       landType: 'Residential',
@@ -181,7 +220,7 @@ const ProfilePage: React.FC = () => {
     {
       id: 'LAND-002',
       surveyNumber: 'SUR-002-2024',
-      address: 'Village Khera, Noida, UP',
+      address: 'Sample Address 2',
       area: 10800,
       areaUnit: 'sqft',
       landType: 'Agricultural',

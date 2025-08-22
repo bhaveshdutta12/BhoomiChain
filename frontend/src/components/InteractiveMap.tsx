@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -17,7 +17,9 @@ import {
   useTheme,
   useMediaQuery,
   IconButton,
-  Fab
+  Fab,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import { 
   LocationOn, 
@@ -38,7 +40,7 @@ interface LandProperty {
   location: string;
   area: number;
   coordinates: [number, number];
-  polygon?: number[][];
+  polygon?: [number, number][];
   status: 'Verified' | 'Pending' | 'Disputed';
   price: number;
   registrationDate: string;
@@ -65,6 +67,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [lands, setLands] = useState<LandProperty[]>([]);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showLegend, setShowLegend] = useState(true);
+  const [filterOwned, setFilterOwned] = useState(false);
+  const mapRef = useRef<L.Map | null>(null);
 
   // Default map center (Delhi coordinates)
   const defaultCenter: [number, number] = [28.6139, 77.2090];
@@ -86,7 +91,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       id: '1',
       surveyNumber: 'SUR-001-2024',
       owner: userAddress || '0x1234...5678',
-      ownerName: 'John Doe',
+      ownerName: userAddress ? 'Your Land' : 'Sample Land',
       location: 'Downtown District, Block A',
       area: 2.5,
       coordinates: [77.2090, 28.6139],
@@ -102,13 +107,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       registrationDate: '2024-01-15',
       lastTransactionHash: '0xabc123...',
       documents: ['deed.pdf', 'survey.pdf'],
-      isOwned: true
+      isOwned: !!userAddress
     },
     {
       id: '2',
       surveyNumber: 'SUR-002-2024',
       owner: '0x9876...4321',
-      ownerName: 'Jane Smith',
+      ownerName: 'Sample Owner',
       location: 'Green Valley, Sector 12',
       area: 1.8,
       coordinates: [77.2190, 28.6239],
@@ -128,7 +133,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       id: '3',
       surveyNumber: 'SUR-003-2024',
       owner: '0xabcd...efgh',
-      ownerName: 'Robert Johnson',
+      ownerName: 'Sample Owner',
       location: 'Industrial Zone, Block C',
       area: 3.2,
       coordinates: [77.1990, 28.6039],
@@ -147,8 +152,22 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   ];
 
   useEffect(() => {
-    setLands(mockLands);
-  }, [userAddress]);
+    // Filter lands based on user preferences
+    let filteredLands = mockLands;
+    
+    if (filterOwned && userAddress) {
+      filteredLands = mockLands.filter(land => land.owner === userAddress);
+    }
+    
+    setLands(filteredLands);
+  }, [userAddress, filterOwned]);
+
+  // Set map instance when ref is available
+  useEffect(() => {
+    if (mapRef.current) {
+      setMapInstance(mapRef.current);
+    }
+  }, [mapRef.current]);
 
   const handleLandClick = (land: LandProperty) => {
     setSelectedLand(land);
@@ -211,7 +230,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
-        whenCreated={handleMapCreated}
+        ref={mapRef}
         zoomControl={false} // We'll add custom zoom controls
         attributionControl={true}
         doubleClickZoom={!isMobile} // Disable double-click zoom on mobile
@@ -270,7 +289,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
               <Polygon
                 positions={land.polygon}
                 pathOptions={{
-                  color: land.isOwned ? '#2196f3' : '#4caf50',
+                  color: land.isOwned ? '#2196f3' : 
+                         land.status === 'Pending' ? '#ff9800' : '#4caf50',
                   weight: 2,
                   opacity: 0.7,
                   fillOpacity: 0.2,
@@ -283,6 +303,56 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </React.Fragment>
         ))}
       </MapContainer>
+
+      {/* Map Legend and Controls */}
+      <Box sx={{ position: 'absolute', left: 16, top: 16, zIndex: 1000 }}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 2, 
+            minWidth: 200, 
+            bgcolor: 'background.paper',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Map Legend
+          </Typography>
+          
+          {/* Legend Items */}
+          <Box sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ width: 20, height: 20, bgcolor: '#2196f3', mr: 1, borderRadius: 1 }} />
+              <Typography variant="body2">Your Lands</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ width: 20, height: 20, bgcolor: '#4caf50', mr: 1, borderRadius: 1 }} />
+              <Typography variant="body2">Other Lands</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ width: 20, height: 20, bgcolor: '#ff9800', mr: 1, borderRadius: 1 }} />
+              <Typography variant="body2">Pending Verification</Typography>
+            </Box>
+          </Box>
+
+          {/* Filter Controls */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={filterOwned}
+                onChange={(e) => setFilterOwned(e.target.checked)}
+                size="small"
+              />
+            }
+            label="Show Only My Lands"
+            sx={{ fontSize: '0.875rem' }}
+          />
+          
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            {lands.length} land(s) displayed
+          </Typography>
+        </Paper>
+      </Box>
 
       {/* Mobile-optimized map controls */}
       {isMobile && (

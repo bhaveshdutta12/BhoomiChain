@@ -11,6 +11,7 @@ import SearchPage from './pages/SearchPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import { LandDetailsPage, RegisterLandPage, TransfersPage, MapPage, DashboardPage } from './pages';
+import LandTransfersPage from './pages/LandTransfersPage';
 import UserRegistrationPage from './pages/UserRegistrationPage';
 import GovernmentDashboardPage from './pages/GovernmentDashboardPage';
 
@@ -174,6 +175,7 @@ function App() {
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/land/:id" element={<LandDetailsPage />} />
                     <Route path="/transfers" element={<TransfersPage />} />
+                    <Route path="/land-transfers" element={<LandTransfersPage />} />
                     <Route path="/map" element={<MapPage />} />
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/government-dashboard" element={<GovernmentDashboardPage />} />

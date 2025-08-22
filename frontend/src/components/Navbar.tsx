@@ -24,6 +24,7 @@ import {
   Dashboard,
   Add,
   SwapHoriz,
+  History,
   AccountCircle,
   Menu as MenuIcon,
   Wallet,
@@ -50,30 +51,20 @@ const Navbar: React.FC = () => {
       { label: 'Home', path: '/', icon: <Home /> },
       { label: 'Search', path: '/search', icon: <Search /> },
       { label: 'Map View', path: '/map', icon: <Map /> },
+      { label: 'Dashboard', path: '/dashboard', icon: <Dashboard /> },
+      { label: 'Register Land', path: '/register-land', icon: <Add /> },
+      { label: 'Transfers', path: '/transfers', icon: <SwapHoriz /> },
+      { label: 'Land Records', path: '/land-transfers', icon: <History /> },
+      { label: 'Profile', path: '/profile', icon: <AccountCircle /> },
     ];
 
-    if (isAuthenticated) {
-      if (hasRole(UserRole.GOVERNMENT_OFFICIAL) || 
-          hasRole(UserRole.DEPARTMENT_HEAD) || 
-          hasRole(UserRole.REGISTRAR) || 
-          hasRole(UserRole.ADMIN)) {
-        baseItems.push(
-          { label: 'Government Dashboard', path: '/government-dashboard', icon: <Dashboard /> }
-        );
-      } else {
-        baseItems.push(
-          { label: 'Dashboard', path: '/dashboard', icon: <Dashboard /> }
-        );
-      }
-
-      if (hasRole(UserRole.REGISTRAR) || hasRole(UserRole.ADMIN)) {
-        baseItems.push(
-          { label: 'Register Land', path: '/register-land', icon: <Add /> }
-        );
-      }
-
+    // Add government dashboard for officials
+    if (isAuthenticated && (hasRole(UserRole.GOVERNMENT_OFFICIAL) || 
+        hasRole(UserRole.DEPARTMENT_HEAD) || 
+        hasRole(UserRole.REGISTRAR) || 
+        hasRole(UserRole.ADMIN))) {
       baseItems.push(
-        { label: 'Transfers', path: '/transfers', icon: <SwapHoriz /> }
+        { label: 'Government Dashboard', path: '/government-dashboard', icon: <Dashboard /> }
       );
     }
 
@@ -192,28 +183,31 @@ const Navbar: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {isAuthenticated ? (
               <>
-                {isConnected && (
-                  <Chip
-                    icon={<Wallet />}
-                    label={formatAddress(account || '')}
-                    color="primary"
-                    variant="outlined"
-                    size="medium"
-                  />
-                )}
-                <Chip
-                  icon={<AccountCircle />}
-                  label={user?.name || 'User'}
-                  color="secondary"
+                {/* Single user profile button with dropdown */}
+                <Button
                   variant="outlined"
-                  size="medium"
-                />
-                <IconButton
-                  color="inherit"
+                  startIcon={<AccountCircle />}
                   onClick={handleMenuClick}
+                  sx={{ 
+                    borderRadius: 20,
+                    textTransform: 'none',
+                    px: 2
+                  }}
                 >
-                  <AccountCircle />
-                </IconButton>
+                  {user?.name || 'User'}
+                </Button>
+                
+                {/* Wallet connection status/button */}
+                {!isConnected && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Wallet />}
+                    onClick={connectWallet}
+                  >
+                    Connect Wallet
+                  </Button>
+                )}
                 <Menu
                   anchorEl={anchorEl}
                   open={Boolean(anchorEl)}
@@ -231,12 +225,19 @@ const Navbar: React.FC = () => {
                     <AccountCircle sx={{ mr: 1 }} />
                     Profile
                   </MenuItem>
-                  {isConnected && (
+                  
+                  {isConnected ? (
                     <MenuItem onClick={disconnectWallet}>
                       <Wallet sx={{ mr: 1 }} />
-                      Disconnect Wallet
+                      Disconnect Wallet ({formatAddress(account || '')})
+                    </MenuItem>
+                  ) : (
+                    <MenuItem onClick={connectWallet}>
+                      <Wallet sx={{ mr: 1 }} />
+                      Connect Wallet
                     </MenuItem>
                   )}
+                  
                   <MenuItem onClick={logout}>
                     <Logout sx={{ mr: 1 }} />
                     Logout
@@ -245,16 +246,14 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                {!isConnected && (
-                  <Button
-                    variant="outlined"
-                    startIcon={<Wallet />}
-                    onClick={connectWallet}
-                    sx={{ mr: 1 }}
-                  >
-                    Connect Wallet
-                  </Button>
-                )}
+                <Button
+                  variant="outlined"
+                  startIcon={<Wallet />}
+                  onClick={connectWallet}
+                  sx={{ mr: 1 }}
+                >
+                  {isConnected ? formatAddress(account || '') : 'Connect Wallet'}
+                </Button>
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/login')}
