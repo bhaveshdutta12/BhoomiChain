@@ -2,8 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Box, Paper, Typography, Card, CardContent, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { LocationOn, Info, VerifiedUser } from '@mui/icons-material';
+import { 
+  Box, 
+  Paper, 
+  Typography, 
+  Card, 
+  CardContent, 
+  Chip, 
+  Button, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Fab
+} from '@mui/material';
+import { 
+  LocationOn, 
+  Info, 
+  VerifiedUser, 
+  MyLocation,
+  ZoomIn,
+  ZoomOut,
+  Fullscreen,
+  FullscreenExit
+} from '@mui/icons-material';
 
 interface LandProperty {
   id: string;
@@ -33,13 +58,17 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onLandSelect, 
   showUserLandsOnly = false 
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [selectedLand, setSelectedLand] = useState<LandProperty | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [lands, setLands] = useState<LandProperty[]>([]);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Default map center (Delhi coordinates)
   const defaultCenter: [number, number] = [28.6139, 77.2090];
-  const defaultZoom = 12;
+  const defaultZoom = isMobile ? 10 : 12; // Lower zoom for mobile
 
   // Fix Leaflet default markers
   useEffect(() => {
@@ -98,63 +127,28 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     {
       id: '3',
       surveyNumber: 'SUR-003-2024',
-      owner: userAddress || '0x5555...7777',
-      ownerName: 'Bob Johnson',
-      location: 'Industrial Zone, Plot 45',
-      area: 5.0,
-      coordinates: [77.2290, 28.6339],
+      owner: '0xabcd...efgh',
+      ownerName: 'Robert Johnson',
+      location: 'Industrial Zone, Block C',
+      area: 3.2,
+      coordinates: [77.1990, 28.6039],
       polygon: [
-        [77.2280, 28.6330],
-        [77.2300, 28.6330],
-        [77.2300, 28.6348],
-        [77.2280, 28.6348],
-        [77.2280, 28.6330]
+        [77.1980, 28.6035],
+        [77.2000, 28.6035],
+        [77.2000, 28.6043],
+        [77.1980, 28.6043],
+        [77.1980, 28.6035]
       ],
       status: 'Pending',
-      price: 12000000,
+      price: 4200000,
       registrationDate: '2024-03-10',
-      isOwned: userAddress === '0x5555...7777'
+      isOwned: false
     }
   ];
 
   useEffect(() => {
-    // Filter lands based on showUserLandsOnly prop
-    const filteredLands = showUserLandsOnly 
-      ? mockLands.filter(land => land.isOwned)
-      : mockLands;
-    
-    setLands(filteredLands);
-  }, [showUserLandsOnly, userAddress, mockLands]);
-
-  // Create custom icon for different land statuses
-  const createCustomIcon = (status: string, isOwned: boolean) => {
-    const iconHtml = `
-      <div style="
-        background-color: ${isOwned ? '#00B894' : '#6C5CE7'};
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #00D4FF;
-        box-shadow: 0 2px 10px rgba(0, 212, 255, 0.5);
-        cursor: pointer;
-        color: white;
-        font-weight: bold;
-        font-size: 12px;
-      ">
-        ${status === 'Verified' ? '✓' : status === 'Pending' ? '⏳' : '⚠'}
-      </div>
-    `;
-    
-    return L.divIcon({
-      html: iconHtml,
-      className: 'custom-marker',
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-    });
-  };
+    setLands(mockLands);
+  }, [userAddress]);
 
   const handleLandClick = (land: LandProperty) => {
     setSelectedLand(land);
@@ -164,293 +158,290 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(price);
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedLand(null);
+  };
+
+  const handleMapCreated = (map: L.Map) => {
+    setMapInstance(map);
+  };
+
+  const handleZoomIn = () => {
+    if (mapInstance) {
+      mapInstance.zoomIn();
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapInstance) {
+      mapInstance.zoomOut();
+    }
+  };
+
+  const handleLocateMe = () => {
+    if (navigator.geolocation && mapInstance) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          mapInstance.setView([latitude, longitude], 15);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  };
+
+  const handleFullscreen = () => {
+    if (mapInstance) {
+      if (!isFullscreen) {
+        mapInstance.getContainer().requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
   };
 
   return (
-    <Box sx={{ position: 'relative', height: '100%' }}>
+    <Box sx={{ position: 'relative', height: isMobile ? '60vh' : '70vh' }}>
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
-        style={{ 
-          width: '100%', 
-          height: '100%',
-          borderRadius: '16px',
-          overflow: 'hidden'
-        }}
+        style={{ height: '100%', width: '100%' }}
+        whenCreated={handleMapCreated}
+        zoomControl={false} // We'll add custom zoom controls
+        attributionControl={true}
+        doubleClickZoom={!isMobile} // Disable double-click zoom on mobile
         scrollWheelZoom={true}
+        dragging={true}
+        touchZoom={true}
+        boxZoom={false}
+        keyboard={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Land Parcels */}
         {lands.map((land) => (
           <React.Fragment key={land.id}>
-            {/* Land Boundary Polygon */}
-            {land.polygon && (
-              <Polygon
-                positions={land.polygon.map(coord => [coord[1], coord[0]])} // Leaflet uses [lat, lng] format
-                pathOptions={{
-                  fillColor: land.isOwned ? '#00B894' : '#6C5CE7',
-                  fillOpacity: land.isOwned ? 0.4 : 0.2,
-                  color: '#00D4FF',
-                  weight: 2,
-                  opacity: 0.8,
-                }}
-              />
-            )}
-            
-            {/* Land Marker */}
             <Marker
-              position={[land.coordinates[1], land.coordinates[0]]} // Leaflet uses [lat, lng] format
-              icon={createCustomIcon(land.status, land.isOwned || false)}
+              position={land.coordinates}
               eventHandlers={{
                 click: () => handleLandClick(land),
               }}
             >
               <Popup>
-                <Box sx={{ minWidth: 200 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ minWidth: isMobile ? 200 : 250 }}>
+                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
                     {land.surveyNumber}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Owner: {land.ownerName || land.owner}
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Owner:</strong> {land.ownerName || land.owner}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Area: {land.area} acres
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Location:</strong> {land.location}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Price: {formatPrice(land.price)}
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Area:</strong> {land.area} acres
                   </Typography>
                   <Chip
                     label={land.status}
+                    color={land.status === 'Verified' ? 'success' : land.status === 'Pending' ? 'warning' : 'error'}
                     size="small"
-                    color={land.status === 'Verified' ? 'success' : 'warning'}
-                    sx={{ mt: 1 }}
+                    sx={{ mb: 1 }}
                   />
-                  {land.isOwned && (
-                    <Chip
-                      label="Your Property"
-                      size="small"
-                      color="success"
-                      sx={{ mt: 1, ml: 1 }}
-                    />
-                  )}
-                  <Box sx={{ mt: 2 }}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleLandClick(land)}
-                    >
-                      View Details
-                    </Button>
-                  </Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleLandClick(land)}
+                    sx={{ width: '100%' }}
+                  >
+                    View Details
+                  </Button>
                 </Box>
               </Popup>
             </Marker>
+            
+            {land.polygon && (
+              <Polygon
+                positions={land.polygon}
+                pathOptions={{
+                  color: land.isOwned ? '#2196f3' : '#4caf50',
+                  weight: 2,
+                  opacity: 0.7,
+                  fillOpacity: 0.2,
+                }}
+                eventHandlers={{
+                  click: () => handleLandClick(land),
+                }}
+              />
+            )}
           </React.Fragment>
         ))}
       </MapContainer>
-      
-      {/* Map Legend */}
-      <Paper 
-        sx={{ 
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          p: 2,
-          minWidth: 200,
-          background: 'rgba(26, 26, 46, 0.9)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}
-      >
-        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-          Map Legend
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Box 
-            sx={{ 
-              width: 16, 
-              height: 16, 
-              backgroundColor: '#00B894', 
-              mr: 1, 
-              borderRadius: 1,
-              opacity: 0.7
-            }} 
-          />
-          <Typography variant="caption">Your Lands</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Box 
-            sx={{ 
-              width: 16, 
-              height: 16, 
-              backgroundColor: '#6C5CE7', 
-              mr: 1, 
-              borderRadius: 1,
-              opacity: 0.4
-            }} 
-          />
-          <Typography variant="caption">Other Properties</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box 
-            sx={{ 
-              width: 16, 
-              height: 16, 
-              border: '2px solid #00D4FF', 
-              mr: 1, 
-              borderRadius: 1
-            }} 
-          />
-          <Typography variant="caption">Boundaries</Typography>
-        </Box>
-      </Paper>
 
-      {/* Land Properties List */}
-      <Paper 
-        sx={{ 
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          p: 2,
-          maxWidth: 300,
-          maxHeight: 200,
-          overflow: 'auto',
-          background: 'rgba(26, 26, 46, 0.9)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}
-      >
-        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-          Properties ({lands.length})
-        </Typography>
-        {lands.map((land) => (
-          <Box
-            key={land.id}
-            onClick={() => handleLandClick(land)}
-            sx={{
-              p: 1,
-              mb: 1,
-              border: '1px solid',
-              borderColor: selectedLand?.id === land.id ? 'primary.main' : 'divider',
-              borderRadius: 1,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'rgba(0, 212, 255, 0.1)'
-              },
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LocationOn 
-                sx={{ 
-                  fontSize: 16, 
-                  color: land.isOwned ? 'success.main' : 'secondary.main' 
-                }} 
-              />
-              <Typography variant="caption" fontWeight="bold">
-                {land.surveyNumber}
-              </Typography>
-              {land.isOwned && (
-                <Chip label="Owned" size="small" color="success" />
-              )}
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              {land.location}
-            </Typography>
+      {/* Mobile-optimized map controls */}
+      {isMobile && (
+        <>
+          {/* Zoom controls */}
+          <Box sx={{ position: 'absolute', right: 16, top: 16, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <IconButton
+              onClick={handleZoomIn}
+              sx={{ 
+                bgcolor: 'background.paper', 
+                boxShadow: 2,
+                '&:hover': { bgcolor: 'background.paper' }
+              }}
+            >
+              <ZoomIn />
+            </IconButton>
+            <IconButton
+              onClick={handleZoomOut}
+              sx={{ 
+                bgcolor: 'background.paper', 
+                boxShadow: 2,
+                '&:hover': { bgcolor: 'background.paper' }
+              }}
+            >
+              <ZoomOut />
+            </IconButton>
           </Box>
-        ))}
-      </Paper>
+
+          {/* Location and fullscreen controls */}
+          <Box sx={{ position: 'absolute', left: 16, bottom: 16, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Fab
+              size="medium"
+              color="primary"
+              onClick={handleLocateMe}
+              sx={{ boxShadow: 2 }}
+            >
+              <MyLocation />
+            </Fab>
+            <Fab
+              size="medium"
+              color="secondary"
+              onClick={handleFullscreen}
+              sx={{ boxShadow: 2 }}
+            >
+              {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+            </Fab>
+          </Box>
+        </>
+      )}
 
       {/* Land Details Dialog */}
-      <Dialog 
-        open={dialogOpen} 
-        onClose={() => setDialogOpen(false)}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        fullScreen={isMobile}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : 8,
+            maxHeight: isMobile ? '100vh' : '80vh'
+          }
+        }}
       >
-        <DialogTitle sx={{ bgcolor: 'background.paper' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Info color="primary" />
-            <Typography variant="h6">Land Details</Typography>
-            {selectedLand?.isOwned && (
-              <Chip label="Your Property" color="success" size="small" />
-            )}
-          </Box>
+        <DialogTitle sx={{ 
+          pb: 1,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Typography variant="h6">
+            Land Details
+          </Typography>
+          <IconButton onClick={handleCloseDialog}>
+            <Info />
+          </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: 'background.paper' }}>
+        
+        <DialogContent>
           {selectedLand && (
-            <Box sx={{ pt: 2 }}>
+            <Box sx={{ pt: 1 }}>
               <Card sx={{ mb: 2 }}>
                 <CardContent>
-                  <Box sx={{ display: 'flex', justify: 'space-between', mb: 2 }}>
-                    <Typography variant="h6" color="primary">
-                      {selectedLand.surveyNumber}
-                    </Typography>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                    {selectedLand.surveyNumber}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                     <Chip
+                      icon={<VerifiedUser />}
                       label={selectedLand.status}
                       color={selectedLand.status === 'Verified' ? 'success' : 'warning'}
-                      icon={selectedLand.status === 'Verified' ? <VerifiedUser /> : undefined}
+                    />
+                    <Chip
+                      icon={<LocationOn />}
+                      label={`${selectedLand.area} acres`}
+                      color="info"
                     />
                   </Box>
                   
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" gutterBottom>
-                      <strong>Owner:</strong> {selectedLand.ownerName || selectedLand.owner}
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Owner:</strong> {selectedLand.ownerName || selectedLand.owner}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Location:</strong> {selectedLand.location}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Registration Date:</strong> {selectedLand.registrationDate}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Market Value:</strong> ₹{selectedLand.price.toLocaleString()}
+                  </Typography>
+                  
+                  {selectedLand.lastTransactionHash && (
+                    <Typography variant="body2" sx={{ mt: 2, fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                      <strong>Last Transaction:</strong> {selectedLand.lastTransactionHash}
                     </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      <strong>Location:</strong> {selectedLand.location}
+                  )}
+                </CardContent>
+              </Card>
+              
+              {selectedLand.documents && selectedLand.documents.length > 0 && (
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Documents
                     </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      <strong>Area:</strong> {selectedLand.area} acres
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                      <strong>Registration Date:</strong> {selectedLand.registrationDate}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ p: 2, bgcolor: 'rgba(0, 212, 255, 0.1)', borderRadius: 2, mb: 2 }}>
-                    <Typography variant="h5" sx={{ color: 'primary.main' }}>
-                      {formatPrice(selectedLand.price)}
-                    </Typography>
-                  </Box>
-
-                  {selectedLand.documents && (
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Documents:
-                      </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       {selectedLand.documents.map((doc, index) => (
                         <Chip
                           key={index}
                           label={doc}
                           variant="outlined"
-                          size="small"
-                          sx={{ mr: 1, mb: 1 }}
+                          clickable
+                          onClick={() => console.log('View document:', doc)}
                         />
                       ))}
                     </Box>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: 'background.paper' }}>
-          <Button onClick={() => setDialogOpen(false)}>Close</Button>
-          {selectedLand?.isOwned && (
-            <Button variant="contained" sx={{ mr: 1 }}>
-              Manage Property
+        
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleCloseDialog} color="primary">
+            Close
+          </Button>
+          {selectedLand && (
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => {
+                console.log('View on map:', selectedLand);
+                handleCloseDialog();
+              }}
+            >
+              View on Map
             </Button>
           )}
         </DialogActions>

@@ -1,0 +1,20 @@
+# Smart Contract Deployment Environment Variables
+# Copy this content to a .env file and fill in your values
+
+# Your wallet private key (without 0x prefix)
+# WARNING: Never share this or commit it to git!
+PRIVATE_KEY=your_private_key_here
+
+# Mumbai Testnet (Polygon) - Recommended for demos
+POLYGON_MUMBAI_RPC_URL=https://rpc-mumbai.maticvigil.com
+
+# Sepolia Testnet (Ethereum) - Alternative option
+SEPOLIA_RPC_URL=your_sepolia_rpc_url_here
+
+# Optional: Mainnet RPC URLs (for production)
+POLYGON_RPC_URL=your_polygon_mainnet_rpc_url
+SEPOLIA_RPC_URL=your_sepolia_rpc_url
+
+# Example values (replace with your actual values):
+# PRIVATE_KEY=abc123def456ghi789jkl012mno345pqr678stu901vwx234yz
+# POLYGON_MUMBAI_RPC_URL=https://rpc-mumbai.maticvigil.com
