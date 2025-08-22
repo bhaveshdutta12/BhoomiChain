@@ -10,7 +10,7 @@
     "dev:frontend": "cd frontend && npm start",
     "deploy:local": "cd contracts && npx hardhat run scripts/deploy.js --network localhost",
     "test": "cd contracts && npx hardhat test",
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "keywords": [
     "blockchain",
