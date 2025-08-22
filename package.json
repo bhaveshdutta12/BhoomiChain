@@ -1,0 +1,32 @@
+{
+  "name": "bhoomichain",
+  "version": "1.0.0",
+  "description": "Blockchain-based Land Registry System",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm install && cd contracts && npm install && cd ../backend && npm install && cd ../frontend && npm install",
+    "dev:contracts": "cd contracts && npx hardhat node",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "deploy:local": "cd contracts && npx hardhat run scripts/deploy.js --network localhost",
+    "test": "cd contracts && npx hardhat test"
+  },
+  "keywords": [
+    "blockchain",
+    "land-registry",
+    "solidity",
+    "ethereum",
+    "ipfs",
+    "react",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/BhoomiChain.git"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}

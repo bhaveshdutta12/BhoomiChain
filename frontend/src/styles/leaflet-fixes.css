@@ -1,0 +1,72 @@
+/* Leaflet Map Container Fixes */
+.leaflet-container {
+  /* Ensure the map doesn't capture events outside its bounds */
+  position: relative !important;
+  z-index: 0 !important;
+}
+
+/* Prevent any oversized Leaflet panes from blocking clicks outside the map */
+.leaflet-pane { /* use Leaflet defaults for interactivity */ }
+
+/* Ensure navigation elements stay above the map */
+.MuiAppBar-root {
+  z-index: 1300 !important;
+}
+
+.MuiDrawer-root {
+  z-index: 1300 !important;
+}
+
+.MuiDialog-root {
+  z-index: 1400 !important;
+}
+
+/* Fix for Leaflet attribution */
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: white !important;
+}
+
+/* Ensure map controls don't interfere with navigation */
+.leaflet-container .leaflet-control-container,
+.leaflet-container .leaflet-top,
+.leaflet-container .leaflet-bottom,
+.leaflet-container .leaflet-control-zoom,
+.leaflet-container .leaflet-control-layers {
+  z-index: 1100 !important;
+}
+
+/* Custom marker hover effects */
+.custom-marker:hover {
+  transform: scale(1.1) !important;
+  transition: transform 0.2s ease !important;
+}
+
+/* Ensure popup content is accessible */
+.leaflet-popup-content {
+  margin: 8px 12px !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1A1A2E !important;
+  color: white !important;
+  border-radius: 8px !important;
+}
+
+.leaflet-popup-tip {
+  background: #1A1A2E !important;
+}
+
+/* Fix for polygon interaction */
+.leaflet-interactive {
+  cursor: pointer !important;
+}
+
+/* Prevent map from capturing touch events on mobile */
+@media (max-width: 768px) {
+  .leaflet-container {
+    touch-action: pan-x pan-y !important;
+  }
+}
