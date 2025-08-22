@@ -115,5 +115,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Thanks to the open-source blockchain community
 
 ---
-
-**Note**: This is a hackathon project for demonstration purposes. For production use, additional security audits and legal compliance would be required.
