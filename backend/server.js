@@ -6,9 +6,10 @@ require('dotenv').config();
 
 const connectDB = require('./config/database');
 const blockchainService = require('./utils/blockchain');
+const config = require('./config/production');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = config.port;
 
 // Connect to MongoDB (optional for demo)
 try {
@@ -25,20 +26,20 @@ app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: config.rateLimitWindow,
+  max: config.rateLimitMax
 });
 app.use('/api', limiter);
 
 // CORS middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: config.frontendUrl,
   credentials: true
 }));
 
 // Body parsing middleware
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: config.maxFileSize }));
+app.use(express.urlencoded({ extended: true, limit: config.maxFileSize }));
 
 // Static files for uploads
 app.use('/uploads', express.static('uploads'));
@@ -69,7 +70,7 @@ app.use('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = config.nodeEnv === 'development';
   
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
@@ -88,7 +89,7 @@ process.on('SIGTERM', () => {
 const server = app.listen(PORT, () => {
   console.log(`🚀 BhoomiChain Backend Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌍 Environment: ${config.nodeEnv}`);
 });
 
 module.exports = app;

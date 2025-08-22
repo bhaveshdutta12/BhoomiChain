@@ -30,9 +30,9 @@ export class IPFSService {
   private gateway: string;
 
   constructor() {
-    // In production, these would be environment variables
-    this.apiUrl = process.env.REACT_APP_IPFS_API_URL || 'http://localhost:5001/api/v0';
-    this.gateway = process.env.REACT_APP_IPFS_GATEWAY || 'http://localhost:8080/ipfs';
+    const { ipfsApiUrl, ipfsGateway } = require('../config/environment').config;
+    this.apiUrl = ipfsApiUrl;
+    this.gateway = ipfsGateway;
   }
 
   /**

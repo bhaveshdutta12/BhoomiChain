@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: bhoomichain-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: RPC_URL
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: IPFS_GATEWAY
+        value: https://ipfs.io/ipfs
+      - key: FRONTEND_URL
+        sync: false

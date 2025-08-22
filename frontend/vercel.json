@@ -1,0 +1,16 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "@react_app_api_url",
+    "REACT_APP_IPFS_API_URL": "@react_app_ipfs_api_url",
+    "REACT_APP_IPFS_GATEWAY": "@react_app_ipfs_gateway"
+  }
+}
