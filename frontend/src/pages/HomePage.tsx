@@ -82,17 +82,17 @@ const HomePage: React.FC = () => {
       color: 'secondary' as const,
     },
     {
-      title: 'Register New Land',
-      description: 'Register a new land property (Government officials only)',
+      title: 'User Registration',
+      description: 'Register as a citizen, government official, or institution',
       icon: <Add />,
       action: () => navigate('/register'),
       color: 'success' as const,
     },
     {
-      title: 'View Dashboard',
-      description: 'Access comprehensive statistics and analytics',
+      title: 'Government Dashboard',
+      description: 'Access government tools and verification management',
       icon: <Dashboard />,
-      action: () => navigate('/dashboard'),
+      action: () => navigate('/government-dashboard'),
       color: 'info' as const,
     },
   ];
@@ -151,6 +151,15 @@ const HomePage: React.FC = () => {
                 sx={{ px: 4, py: 2 }}
               >
                 View Map
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                startIcon={<Dashboard />}
+                onClick={() => navigate('/government-dashboard')}
+                sx={{ px: 4, py: 2 }}
+              >
+                Government Portal
               </Button>
             </Box>
           </Box>

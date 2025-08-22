@@ -39,11 +39,13 @@ import {
   Help
 } from '@mui/icons-material';
 import { useWeb3 } from '../contexts/Web3Context';
+import { useAuth } from '../contexts/AuthContext';
+import { UserRole } from '../types';
 
 interface LoginCredentials {
   email: string;
   password: string;
-  userType: 'citizen' | 'registrar' | 'institution';
+  userType: UserRole;
   rememberMe: boolean;
 }
 
@@ -71,6 +73,7 @@ function TabPanel(props: TabPanelProps) {
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { connectWallet, isLoading, error: walletError, isConnected } = useWeb3();
+  const { login, isAuthenticated } = useAuth();
   const [currentTab, setCurrentTab] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -80,14 +83,14 @@ const LoginPage: React.FC = () => {
   const [citizenLogin, setCitizenLogin] = useState<LoginCredentials>({
     email: '',
     password: '',
-    userType: 'citizen',
+    userType: UserRole.CITIZEN,
     rememberMe: false
   });
 
   const [officialLogin, setOfficialLogin] = useState<LoginCredentials>({
     email: '',
     password: '',
-    userType: 'registrar',
+    userType: UserRole.GOVERNMENT_OFFICIAL,
     rememberMe: false
   });
 
@@ -101,27 +104,26 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock authentication logic
-      if (credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
-        // Store user session
-        localStorage.setItem('userType', credentials.userType);
-        localStorage.setItem('userEmail', credentials.email);
-        localStorage.setItem('isAuthenticated', 'true');
-
+      const success = await login(credentials);
+      
+      if (success) {
         // Navigate based on user type
-        if (credentials.userType === 'citizen') {
+        if (credentials.userType === UserRole.CITIZEN) {
+          navigate('/dashboard');
+        } else if (credentials.userType === UserRole.GOVERNMENT_OFFICIAL || 
+                   credentials.userType === UserRole.DEPARTMENT_HEAD || 
+                   credentials.userType === UserRole.REGISTRAR) {
+          navigate('/government-dashboard');
+        } else if (credentials.userType === UserRole.FINANCIAL_INSTITUTION) {
           navigate('/dashboard');
         } else {
-          navigate('/admin/dashboard');
+          navigate('/dashboard');
         }
       } else {
-        throw new Error('Invalid credentials');
+        setError('Invalid email or password. Please try again.');
       }
     } catch (error) {
-      setError('Invalid email or password. Please try again.');
+      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

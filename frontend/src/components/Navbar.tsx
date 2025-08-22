@@ -31,6 +31,8 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWeb3 } from '../contexts/Web3Context';
+import { useAuth } from '../contexts/AuthContext';
+import { UserRole } from '../types';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
@@ -38,18 +40,47 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { account, isConnected, connectWallet, disconnectWallet } = useWeb3();
+  const { user, isAuthenticated, logout, hasRole } = useAuth();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const menuItems = [
-    { label: 'Home', path: '/', icon: <Home /> },
-    { label: 'Search', path: '/search', icon: <Search /> },
-    { label: 'Map View', path: '/map', icon: <Map /> },
-    { label: 'Dashboard', path: '/dashboard', icon: <Dashboard /> },
-    { label: 'Register Land', path: '/register', icon: <Add /> },
-    { label: 'Transfers', path: '/transfers', icon: <SwapHoriz /> },
-  ];
+  const getMenuItems = () => {
+    const baseItems = [
+      { label: 'Home', path: '/', icon: <Home /> },
+      { label: 'Search', path: '/search', icon: <Search /> },
+      { label: 'Map View', path: '/map', icon: <Map /> },
+    ];
+
+    if (isAuthenticated) {
+      if (hasRole(UserRole.GOVERNMENT_OFFICIAL) || 
+          hasRole(UserRole.DEPARTMENT_HEAD) || 
+          hasRole(UserRole.REGISTRAR) || 
+          hasRole(UserRole.ADMIN)) {
+        baseItems.push(
+          { label: 'Government Dashboard', path: '/government-dashboard', icon: <Dashboard /> }
+        );
+      } else {
+        baseItems.push(
+          { label: 'Dashboard', path: '/dashboard', icon: <Dashboard /> }
+        );
+      }
+
+      if (hasRole(UserRole.REGISTRAR) || hasRole(UserRole.ADMIN)) {
+        baseItems.push(
+          { label: 'Register Land', path: '/register-land', icon: <Add /> }
+        );
+      }
+
+      baseItems.push(
+        { label: 'Transfers', path: '/transfers', icon: <SwapHoriz /> }
+      );
+    }
+
+    return baseItems;
+  };
+
+  const menuItems = getMenuItems();
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -159,12 +190,21 @@ const Navbar: React.FC = () => {
           )}
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {isConnected ? (
+            {isAuthenticated ? (
               <>
+                {isConnected && (
+                  <Chip
+                    icon={<Wallet />}
+                    label={formatAddress(account || '')}
+                    color="primary"
+                    variant="outlined"
+                    size="medium"
+                  />
+                )}
                 <Chip
-                  icon={<Wallet />}
-                  label={formatAddress(account || '')}
-                  color="primary"
+                  icon={<AccountCircle />}
+                  label={user?.name || 'User'}
+                  color="secondary"
                   variant="outlined"
                   size="medium"
                 />
@@ -187,21 +227,48 @@ const Navbar: React.FC = () => {
                     horizontal: 'right',
                   }}
                 >
-                  <MenuItem onClick={disconnectWallet}>
+                  <MenuItem onClick={() => navigate('/profile')}>
+                    <AccountCircle sx={{ mr: 1 }} />
+                    Profile
+                  </MenuItem>
+                  {isConnected && (
+                    <MenuItem onClick={disconnectWallet}>
+                      <Wallet sx={{ mr: 1 }} />
+                      Disconnect Wallet
+                    </MenuItem>
+                  )}
+                  <MenuItem onClick={logout}>
                     <Logout sx={{ mr: 1 }} />
-                    Disconnect Wallet
+                    Logout
                   </MenuItem>
                 </Menu>
               </>
             ) : (
-              <Button
-                variant="contained"
-                startIcon={<Wallet />}
-                onClick={connectWallet}
-                sx={{ ml: 1 }}
-              >
-                Connect Wallet
-              </Button>
+              <>
+                {!isConnected && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<Wallet />}
+                    onClick={connectWallet}
+                    sx={{ mr: 1 }}
+                  >
+                    Connect Wallet
+                  </Button>
+                )}
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/login')}
+                  sx={{ mr: 1 }}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/register')}
+                >
+                  Register
+                </Button>
+              </>
             )}
           </Box>
         </Toolbar>

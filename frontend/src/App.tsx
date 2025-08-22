@@ -11,10 +11,13 @@ import SearchPage from './pages/SearchPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import { LandDetailsPage, RegisterLandPage, TransfersPage, MapPage, DashboardPage } from './pages';
+import UserRegistrationPage from './pages/UserRegistrationPage';
+import GovernmentDashboardPage from './pages/GovernmentDashboardPage';
 
 // Import providers
 import { Web3Provider } from './contexts/Web3Context';
 import { AppProvider } from './contexts/AppContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Create Material-UI theme with Web3/Blockchain aesthetic
 const theme = createTheme({
@@ -158,24 +161,28 @@ function App() {
       <CssBaseline />
       <Web3Provider>
         <AppProvider>
-          <Router>
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <Navbar />
-              <Box component="main" sx={{ flexGrow: 1, pt: 2 }}>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/search" element={<SearchPage />} />
-                  <Route path="/land/:id" element={<LandDetailsPage />} />
-                  <Route path="/register" element={<RegisterLandPage />} />
-                  <Route path="/transfers" element={<TransfersPage />} />
-                  <Route path="/map" element={<MapPage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                </Routes>
+          <AuthProvider>
+            <Router>
+              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <Navbar />
+                <Box component="main" sx={{ flexGrow: 1, pt: 2 }}>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<UserRegistrationPage />} />
+                    <Route path="/register-land" element={<RegisterLandPage />} />
+                    <Route path="/search" element={<SearchPage />} />
+                    <Route path="/land/:id" element={<LandDetailsPage />} />
+                    <Route path="/transfers" element={<TransfersPage />} />
+                    <Route path="/map" element={<MapPage />} />
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/government-dashboard" element={<GovernmentDashboardPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                  </Routes>
+                </Box>
               </Box>
-            </Box>
-          </Router>
+            </Router>
+          </AuthProvider>
         </AppProvider>
       </Web3Provider>
     </ThemeProvider>

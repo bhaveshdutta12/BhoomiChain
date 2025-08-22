@@ -143,20 +143,90 @@ export interface Web3ContextType {
   disconnectWallet: () => void;
 }
 
-// User and authentication types
-export interface User {
-  address: string;
-  role: 'citizen' | 'official' | 'admin';
-  loginTime?: string;
-  joinDate?: string;
+// User and Authentication types
+export enum UserRole {
+  CITIZEN = 'citizen',
+  GOVERNMENT_OFFICIAL = 'government_official',
+  DEPARTMENT_HEAD = 'department_head',
+  FINANCIAL_INSTITUTION = 'financial_institution',
+  REGISTRAR = 'registrar',
+  ADMIN = 'admin'
 }
 
-export interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  login: (address: string, role: string) => Promise<void>;
-  logout: () => void;
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  department?: string;
+  institution?: string;
+  isActive: boolean;
+  createdAt: string;
+  lastLogin?: string;
+  permissions: string[];
+}
+
+export interface AuthCredentials {
+  email: string;
+  password: string;
+  userType: UserRole;
+  rememberMe?: boolean;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+  refreshToken?: string;
+  expiresAt: string;
+}
+
+// Government Dashboard types
+export interface DashboardStats {
+  totalLands: number;
+  verifiedLands: number;
+  pendingVerifications: number;
+  disputedLands: number;
+  totalTransfers: number;
+  pendingTransfers: number;
+  totalUsers: number;
+  activeUsers: number;
+}
+
+export interface DepartmentStats {
+  departmentId: string;
+  departmentName: string;
+  totalLands: number;
+  verifiedLands: number;
+  pendingVerifications: number;
+  disputedLands: number;
+}
+
+export interface VerificationRequest {
+  id: string;
+  landId: number;
+  surveyNumber: string;
+  location: string;
+  area: number;
+  currentOwner: string;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+  assignedTo?: string;
+  comments?: string;
+  documents: Document[];
+}
+
+export interface TransferApproval {
+  id: string;
+  transferId: string;
+  landId: number;
+  surveyNumber: string;
+  from: string;
+  to: string;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+  assignedTo?: string;
+  comments?: string;
+  documents: Document[];
 }
 
 // App context types
